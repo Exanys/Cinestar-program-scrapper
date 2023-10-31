@@ -22,9 +22,14 @@ def get_tables(date: str) -> list:
 
 def get_data_from_row(row) -> dict:
     title_name = row.find('td', {'class': 'tdTitle'}).find('div', {'class': 'divTitle'}).span.text.strip()
-    title_times = [time.text.strip() for time in row.css.select('td > span > a')]
+    title_length = row.css.select('td > span > div.detail > em')[1].text.strip()
+    title_starts = [time.text.strip() for time in row.css.select('td > span > a')]
+    title_times = [f'{title_starts[i]};{title_end}'
+                   for title_end in row.css.select('td > span > div.detail > em')[2]
+                   for i in range(len(title_starts))]
     return {
         'title_name': title_name,
+        'title_length': title_length,
         'title_times': title_times
     }
 
