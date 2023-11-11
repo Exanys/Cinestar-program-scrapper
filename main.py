@@ -20,33 +20,32 @@ def get_tables(date: str) -> list:
     return soup.findAll('table', {'id': 'tableProgram'})
 
 
-def get_data_from_row(row) -> dict:
+def get_data_from_row(row, title_type: str) -> dict:
     title_name = row.find('td', {'class': 'tdTitle'}).find('div', {'class': 'divTitle'}).span.text.strip()
     title_length = row.css.select('td > span > div.detail > em')[1].text.strip()
+    title_length_number = int(title_length.split(' ')[0])
     title_starts = [time.text.strip() for time in row.css.select('td > span > a')]
     title_times = [f'{title_starts[i]};{title_end}'
                    for title_end in row.css.select('td > span > div.detail > em')[2]
                    for i in range(len(title_starts))]
     return {
-        'title_name': title_name,
-        'title_length': title_length,
-        'title_times': title_times
+        'titleName': title_name,
+        'titleLength': title_length_number,
+        'titleTimes': title_times,
+        'titleType': title_type
     }
 
 
-def get_data_from_table_program(table_html) -> dict:
+def get_data_from_table_program(table_html) -> list[dict]:
     program_type = table_html.find('th', {'class': 'title-table'}).text.strip()
     rows = table_html.findAll('tr', {'class': ['even', 'odd']})
     titles = []
     for row in rows:
-        titles.append(get_data_from_row(row))
-    return {
-        'program_type': program_type,
-        'titles': titles,
-    }
+        titles.append(get_data_from_row(row, program_type))
+    return titles
 
 
-def get_data(dates_list: list) -> list:
+def get_data(dates_list: list) -> list[dict]:
     programs = []
     for date in dates_list:
         tables = get_tables(date)
@@ -56,7 +55,7 @@ def get_data(dates_list: list) -> list:
             date_program.append(program_data)
         programs.append({
             'date': date,
-            'programs': date_program
+            'programs': [item for sublist in date_program for item in sublist]
         })
     return programs
 
